@@ -686,3 +686,47 @@ func PartlyUpdateReceives(env *customedb.Env) http.Handler {
 		return
 	})
 }
+
+//PartlyUpdatePays is a handler for partialy update payable accounts
+func PartlyUpdatePays(env *customedb.Env) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content_Type", "application/json")
+		var factor utility.Factor
+		var res utility.Response
+		body, _ := ioutil.ReadAll(r.Body)
+		//decode json request body to factor
+		err := json.Unmarshal(body, &factor)
+		if err != nil {
+			res.Err = fmt.Sprintf("during unmarshaling data this error happened: %s", err.Error())
+			json.NewEncoder(w).Encode(res)
+			return
+		}
+		//check for shop which is valid or not
+		valids := []string{"shop_a", "shop_b", "shop_c", "warehouse"}
+		check := false
+		for _, v := range valids {
+			if v == factor.Shop {
+				check = true
+			}
+		}
+		if !check {
+			res.Err = fmt.Sprint("shop is not valid")
+			json.NewEncoder(w).Encode(res)
+			return
+		}
+		result, err := env.DB.Exec(customedb.UpdatePaysPartly, factor.Price, factor.Shop, factor.FactorNumber, factor.Date)
+		if err != nil {
+			res.Err = fmt.Sprintf("بروز رسانی حساب پرداختی با مشکل رو به رو شد: %s", err.Error())
+			json.NewEncoder(w).Encode(res)
+			return
+		}
+		if n, _ := result.RowsAffected(); n == 0 {
+			res.Err = fmt.Sprint("مشخصات وارد شده برای بروز رسانی حساب پرداختی صحیح نسیت")
+			json.NewEncoder(w).Encode(res)
+			return
+		}
+		res.Result = "بروز رسانی با موفقیت انجام شد"
+		json.NewEncoder(w).Encode(res)
+		return
+	})
+}

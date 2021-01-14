@@ -39,6 +39,7 @@ func main() {
 	// r.Handle("/swap-inventory", h.AuthMiddleWare(h.HandleSwap(env))).Methods("PUT")
 	r.Handle("/unrec-list", h.AuthMiddleWare(h.HandleUnpayedRec(env))).Methods("POST")
 	r.Handle("/unpay-list", h.AuthMiddleWare(h.HandleUnpayedPay(env))).Methods("POST")
-	r.Handle("/partyl-pay", h.AuthMiddleWare(h.PartlyUpdateReceives(env))).Methods("POST")
+	r.Handle("/partly-rec", h.AuthMiddleWare(h.PartlyUpdateReceives(env))).Methods("POST")
+	r.Handle("/partly-pay", h.AuthMiddleWare(h.PartlyUpdatePays(env))).Methods("POST")
 	log.Fatal(http.ListenAndServe(":8000", handlers.CORS(headers, method, origin)(r)))
 }
